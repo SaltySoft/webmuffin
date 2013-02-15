@@ -1,0 +1,4 @@
+Tmp/*
+App/Logs/*
+Config/database.php
+.idea
