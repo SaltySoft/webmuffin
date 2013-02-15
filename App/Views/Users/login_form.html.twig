@@ -1,0 +1,42 @@
+<style type="text/css">
+    .block
+    {
+        width: 400px;
+        margin: auto;
+        margin-bottom: 10px;
+    }
+
+    form
+    {
+        width: 300px;
+        margin: auto;
+    }
+
+    form input
+    {
+        float: right;
+    }
+
+</style>
+<h1>Login</h1>
+<div class="block" style="margin-top: 100px;">
+    Here you can login to the website
+</div>
+<div class="block">
+    <form action="/Users/login" method="post">
+        <div>
+            <label for="username">Username : </label>
+            <input type="text" id="username" name="name"/>
+        </div>
+        <div style="clear: right"></div>
+        <div>
+            <label for="username">Passworde : </label>
+            <input type="password" name="password"/>
+        </div>
+        <div style="clear: right"></div>
+        <div>
+            <input type="submit" value="Log in"/>
+        </div>
+        <div style="clear: right"></div>
+    </form>
+</div>

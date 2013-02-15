@@ -1,0 +1,59 @@
+<style type="text/css">
+    #form
+    {
+        width: 400px;
+        padding: 15px;
+        border: 1px white solid;
+        border-radius: 3px;
+        margin: auto;
+        margin-top: 100px;
+    }
+
+    #form input
+    {
+        float: right;
+    }
+</style>
+<div id="form">
+    <h3>Register</h3>
+    <form action="/Users/create" method="post" id="form_form">
+        <div>
+            <label for="form_name">Username : </label>
+            <input type="text" id="form_name" name="name"/>
+        </div>
+        <div style="clear: both"></div>
+        <div>
+            <label for="form_mail">E-mail : </label>
+            <input type="text" id="form_mail" name="mail"/>
+        </div>
+        <div style="clear: both"></div>
+        <div>
+            <label for="form_password">Password : </label>
+            <input type="password" id="form_password" name="password"/>
+        </div>
+        <div style="clear: both"></div>
+        <div>
+            <label for="form_password2">Repeat the password : </label>
+            <input type="password" id="form_password2" name="password"/>
+
+        </div>
+
+    </form>
+    <div style="clear: both"></div>
+    <input type="submit" id="submit_button" value="Subscribe"/>
+    <div style="clear: both"></div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#submit_button").click(function () {
+            if ($("#form_password").val() == $("#form_password2").val())
+            {
+                $("#form_form").submit();
+            }
+            else
+            {
+                show_message("The password check doesn't match.");
+            }
+        });
+    });
+</script>

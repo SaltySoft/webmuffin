@@ -1,0 +1,137 @@
+body
+{
+	font-family: arial;
+	margin: 0px;
+	background-color: rgba(174, 174, 174, 0.65);
+}
+
+#flash_shower
+{
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 300px;
+    background-color: rgba(230, 230, 230, 0.8);
+    padding: 20px;
+    padding-left: 50px;
+    display: none;
+    background-image: url('/images/icons/information.png');
+    background-repeat: no-repeat;
+    background-position: 20px 50%;
+}
+
+#loader
+{
+    height: 16px;
+    line-height: 16px;
+    padding-left: 20px;
+    min-width: 50px;
+    background-image: url("/images/loader.gif");
+    display:none;
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background-repeat: no-repeat;
+    color: gray;
+}
+
+#container
+{
+	
+	width: 1000px;
+	margin: auto;
+
+
+}
+
+#header
+{
+	height: 80px;
+
+	background-color: rgba(255, 255, 255, 0.7);
+	margin-bottom: 50px;
+    border-radius: 0px 0px 2px 2px;
+    box-shadow: 0px 5px 60px #0d0d0d;
+}
+
+#header .header-link
+{
+	display: block;
+	float: left;
+	width: 150px;
+
+	padding: 0px;
+	margin: 5px;
+    margin-top: 0px;
+	text-align: center;
+    height: 50px;
+    line-height: 50px;
+    font-weight: bold;
+    background-color: rgba(50, 50, 50, 0.7);
+    border-radius: 0px 0px 2px 2px;
+}
+
+#header .header-link a
+{
+    text-decoration: none;
+
+    color: #ffffff;
+}
+
+#header .header-link:hover a
+{
+    color: #ffffff;
+    color: #5695a8;
+}
+
+#header .header-link:hover
+{
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+
+#content
+{
+	background-color: red;
+	padding: 5px;
+	background-color: rgba(255, 255, 255, 0.7);
+    box-shadow: 0px 5px 60px #0d0d0d;
+    margin-bottom: 50px;
+	min-height: 500px;
+    border-radius: 2px;
+    border-radius: 2px 2px 2px 2px;
+}
+
+#footer
+{
+	height: 50px;
+	padding: 20px;
+	background-color: rgba(255, 255, 255, 0.7);
+	margin-bottom: 10px;
+	text-align: center;
+    box-shadow: 0px 5px 60px #0d0d0d;
+}
+
+#footer a
+{
+    text-decoration: none;
+    font-weight: bold;
+    color: #405ca6;
+}
+
+/* Default */
+
+h1, h2, h3, h4, h5, h6
+{
+	margin: 0px;
+}
+
+.box
+{
+	background-color: rgba(255, 255, 255, 0.8);
+	padding: 10px;
+	float: left;
+	margin: 5px;
+	width: 300px;
+    min-height: 300px;
+}
