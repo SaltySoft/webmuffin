@@ -27,8 +27,18 @@ class MuffinApplication
     private static $errors = array();
     private static $started = false;
     private static $http_code = 200;
+    private static $plugins = array();
+    private static $plugins_loaded = false;
 
-    private static $http_headers = array(
+    public static function getPlugins()
+    {
+        if (!self::$plugins_loaded)
+            self::loadPlugins();
+        return self::$plugins;
+    }
+
+    private
+    static $http_headers = array(
         200 => "200 OK",
         201 => "201 Created",
         202 => "202 Accepted",
@@ -78,7 +88,8 @@ class MuffinApplication
         510 => "510 Not Extended",
     );
 
-    private static $error_types = array(
+    private
+    static $error_types = array(
         E_ERROR => "Fatal error",
         E_WARNING => "Warning",
         E_PARSE => "Parse error",
@@ -88,30 +99,23 @@ class MuffinApplication
     public static function handleShutDown()
     {
         $error = error_get_last();
-        if (count(MuffinApplication::getErrors()) > 0)
-        {
+        if (count(MuffinApplication::getErrors()) > 0) {
             MuffinApplication::setHttpResponseCode(500);
             header("HTTP/1.0 " . MuffinApplication::getHttpResponseCode());
-            if (ENV == 2)
-            {
+            if (ENV == 2) {
                 //Don't display anything when in prod.
                 ob_end_clean();
-                if ((int)method_exists("PagesController", "e500"))
-                {
+                if ((int)method_exists("PagesController", "e500")) {
 
                     $dispatch = new PagesController("", "Pages", "e500", "html");
                     $dispatch->executeAction("e500", array());
 
-                }
-                else
-                {
+                } else {
                     echo "Server says : 500 Server internal error.<br />Oven failed, muffins are overcooked.";
                     flush();
                     exit;
                 }
-            }
-            else
-            {
+            } else {
 
             }
         }
@@ -120,8 +124,7 @@ class MuffinApplication
 
     public static function captureNormal($number, $message, $file, $line)
     {
-        if (!isset(self::$error_types[$number]))
-        {
+        if (!isset(self::$error_types[$number])) {
             self::$error_types[$number] = "Undefined";
         }
         self::addError("<b>" . addslashes(self::$error_types[$number] . "</b>: " . $message) . " in <b>" . $file . "</b> at line " . $line, self::$error_types[$number]);
@@ -130,12 +133,27 @@ class MuffinApplication
         return true;
     }
 
+    private static function loadPlugins()
+    {
+        self::$plugins_loaded = true;
+        if ($handle = opendir(ROOT.DS.'Plugins')) {
+            /* loop through directory. */
+            while (false !== ($dir = readdir($handle))) {
 
-    public static function start()
+                if (is_dir(ROOT.DS.'Plugins'.DS.$dir) && $dir != "." && $dir != "..")
+                {
+                    self::$plugins[] = $dir;
+                }
+            }
+            closedir($handle);
+        }
+    }
+
+    public static function start($plugins_array = array())
     {
 
-        if (!self::$started)
-        {
+        if (!self::$started) {
+            self::loadPlugins();
             ini_set("log_errors", 1);
             ini_set("error_log", ROOT . DS . "App" . DS . "Logs" . DS . "errors.log");
             register_shutdown_function(array("MuffinApplication", 'handleShutDown'));
@@ -146,48 +164,33 @@ class MuffinApplication
             require_once (ROOT . DS . "Config" . DS . "routes.php");
             require_once (ROOT . DS . "Lib" . DS . "doctrine_bootstrap.php");
             session_start();
-            if (!isset($_COOKIE["locale"]) && !isset($_SESSION["locale"]))
-            {
+            if (!isset($_COOKIE["locale"]) && !isset($_SESSION["locale"])) {
                 Intl::setLocale(DEFAULT_LOCALE);
-            }
-            else
-            {
-                if (isset($_SESSION["locale"]))
-                {
+            } else {
+                if (isset($_SESSION["locale"])) {
                     Intl::setLocale($_SESSION["locale"]);
-                }
-                else if (isset($_COOKIE["locale"]))
-                {
+                } else if (isset($_COOKIE["locale"])) {
                     Intl::setLocale($_COOKIE["locale"]);
                 }
             }
             setReporting();
             removeMagicQuotes();
             unregisterGlobals();
-            if (User::logged_in())
-            {
+            if (User::logged_in()) {
                 $current_user = User::current_user();
-                if (method_exists($current_user, "updateActivity"))
-                {
+                if (method_exists($current_user, "updateActivity")) {
                     $current_user->updateActivity();
                 }
-            }
-            else
-            {
+            } else {
                 $methods = get_class_methods("User");
-                try
-                {
+                try {
 
-                    if (in_array("setSessionId", $methods))
-                    {
-                        if (isset($_SESSION["_session_id"]))
-                        {
+                    if (in_array("setSessionId", $methods)) {
+                        if (isset($_SESSION["_session_id"])) {
                             $users = User::where(array("session_id" => $_SESSION["_session_id"]));
 
-                            if (count($users) > 0)
-                            {
-                                foreach ($users as $user)
-                                {
+                            if (count($users) > 0) {
+                                foreach ($users as $user) {
                                     $user->setSessionId(null);
                                     Model::getEntityManager()->persist($user);
                                 }
@@ -195,8 +198,7 @@ class MuffinApplication
                             }
                         }
                     }
-                } catch (Exception $e)
-                {
+                } catch (Exception $e) {
                     self::addError($e->getMessage());
                 }
             }
@@ -205,9 +207,7 @@ class MuffinApplication
             callHook();
 
 
-        }
-        else
-        {
+        } else {
             self::addError("The application can only be started once.");
         }
 
@@ -222,8 +222,7 @@ class MuffinApplication
     {
         $error = new Error();
         $error->setMessage($message);
-        if ($type != "")
-        {
+        if ($type != "") {
             $error->setType($type);
         }
         self::$errors[] = $error;
@@ -231,12 +230,9 @@ class MuffinApplication
 
     public static function setHttpResponseCode($code)
     {
-        if (isset(self::$http_headers[$code]))
-        {
+        if (isset(self::$http_headers[$code])) {
             self::$http_code = $code;
-        }
-        else
-        {
+        } else {
             self::$http_code = 500;
         }
     }
@@ -248,12 +244,9 @@ class MuffinApplication
 
     public static function getSessionId()
     {
-        if (isset($_SESSION["_session_id"]))
-        {
+        if (isset($_SESSION["_session_id"])) {
             return $_SESSION["_session_id"];
-        }
-        else
-        {
+        } else {
             $key = md5(microtime() . rand());
             $_SESSION["_session_id"] = $key;
         }

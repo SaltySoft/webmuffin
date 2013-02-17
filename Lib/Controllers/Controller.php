@@ -38,6 +38,7 @@ class Controller
     protected $status = 200;
     protected $layout = "default";
     protected $view = "";
+    protected $_plugin_name = "";
 
 
 
@@ -66,6 +67,11 @@ class Controller
     function get_var_array()
     {
         return $this->_template->get_var_array();
+    }
+
+    function setPlugin($name)
+    {
+        $this->_plugin_name = $name;
     }
 
     function redirect($redirection)
@@ -115,7 +121,10 @@ class Controller
 
     public function setLayout($layout)
     {
-        if (file_exists(ROOT . DS . "App" . DS . "Views" . DS . "Layouts" . DS . $layout . ".html.twig"))
+        $plugin_path = $this->_plugin_name != "" ? "Plugins" . DS . $this->_plugin . DS : "";
+        if (file_exists(ROOT . DS . "App" . DS . "Views" . DS . "Layouts" . DS . $layout . ".html.twig") ||
+            file_exists(ROOT . DS . $plugin_path . DS .  "App" . DS . "Views" . DS . "Layouts" . DS . $layout . ".html.twig")
+        )
         {
             $this->layout = $layout;
         }
@@ -137,12 +146,14 @@ class Controller
 
     function __destruct()
     {
+
         $this->set("errors", $this->errors);
         $this->_template->render_layout = $this->render_layout;
         $this->_template->xml = $this->xml;
         $this->_template->message_view = $this->message_view;
         $this->_template->_layout = $this->layout;
         $this->_template->_view = $this->view;
+        $this->_template->_plugin = $this->_plugin_name;
         if (MuffinApplication::getHttpResponseCode() != 200)
         {
 

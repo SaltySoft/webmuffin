@@ -96,12 +96,22 @@ class Router
         ),
         array(
             "url" => array(
+                "namespace" => "[a-zA-Z]+",
+                "controller" => "[a-zA-Z]+",
+                "action" => "[a-zA-Z]+"
+            ),
+            "controller" => "",
+            "action" => "",
+        ),
+        array(
+            "url" => array(
                 "controller" => "[a-zA-Z]+",
                 "action" => ""
             ),
             "controller" => "",
             "action" => "index",
         ),
+
     );
 
     static $home_root = array(
@@ -263,6 +273,7 @@ class Router
 
         $size = count($url_array);
         $i = 0;
+
         foreach (self::$routes as $route)
         {
             if ($found_path == false)
@@ -270,14 +281,17 @@ class Router
                 $result = array();
                 if (count($route["url"]) == count($url_array)) //check if same parameters count
                 {
+
                     foreach ($route["url"] as $key => $param) //foreach param in the route, check if corresponds
                     {
                         if (preg_match("/^" . $param . "$/", $url_array[$i]) || ($i == count($url_array) - 1 && preg_match("/" . $param . "/", $url_array[$i])))
                         {
+
                             $result[$key] = $url_array[$i];
                             $i++;
                             if ($i == count($route["url"])) //all params matched -> return the result array
                             {
+
                                 $found_path = true;
                                 if (!isset($result["controller"]))
                                     $result["controller"] = $route["controller"];
@@ -285,6 +299,7 @@ class Router
                                 {
                                     $result["action"] = $route["action"];
                                 }
+                                print_r($result);
                                 break;
                             }
                         }
@@ -317,6 +332,7 @@ class Router
         }
         $result["action"] = $actionTypeArray[0];
         $result["size"] = $size;
+
         return $result;
     }
 
@@ -362,6 +378,7 @@ class Router
             $model = "";
         }
         $rendered = false;
+
         if (file_exists(ROOT . DS . "App" . DS . "Controllers" . DS . $controller . ".php"))
         {
 
@@ -375,6 +392,35 @@ class Router
             {
                 //self::redirect(array());
             }
+        }
+        else
+        {
+
+            $plugins = MuffinApplication::getPlugins();
+            $controllerArray = explode(DS, $controller);
+            echo $controllerArray[count($controllerArray) - 1];
+            foreach ($plugins as $plugin)
+            {
+
+                if (file_exists(ROOT . DS . "Plugins" . DS . $plugin . DS ."App".  DS . "Controllers" . DS . $controllerArray[count($controllerArray) - 1] . ".php"))
+                {
+                    $controller_nam = $parameters["namespace"]."\\".$controller;
+                    echo $controller_nam;
+                    if ((int)method_exists($controller_nam, $action))
+                    {
+                        $dispatch = new $controller_nam($model, $controllerName, $action, $parameters["responseType"]);
+                        $dispatch->setPlugin($plugin);
+                        $dispatch->executeAction($action, $parameters);
+                        $rendered = true;
+                    }
+                    else
+                    {
+                        //self::redirect(array());
+                    }
+                }
+            }
+
+
         }
         if (!$rendered)
         {

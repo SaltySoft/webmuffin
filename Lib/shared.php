@@ -25,6 +25,8 @@
 /**
  * checks environment. Deactivate errors display in production.
  */
+
+require_once (ROOT.DS."Lib".DS."MuffinApplication.php");
 function setReporting()
 {
     if (ENV == 0)
@@ -110,6 +112,7 @@ function callHook()
             $options["controller"] = $controller;
             $options["action"] = $action;
 */
+
             $options = Router::parse($url);
             //print_r($options);
             Router::load_page($options);
@@ -142,6 +145,7 @@ function callHook()
  */
 function system_autoload($className)
 {
+    $plugins = MuffinApplication::getPlugins();
     if (file_exists(ROOT.DS."App".DS."Controllers".DS.$className.".php"))
     {
         require_once(ROOT.DS."App".DS."Controllers".DS.$className.".php");
@@ -173,6 +177,15 @@ function system_autoload($className)
     else
     {
 
+        foreach ($plugins as $plugin)
+        {
+            $classNameArray = explode(DS, $className);
+            $className = $classNameArray[count($classNameArray) - 1];
+            if (file_exists(ROOT.DS."Plugins".DS.$plugin.DS."App".DS."Models".DS.$className.".php"))
+                require_once(ROOT.DS."Plugins".DS.$plugin.DS."App".DS."Models".DS.$className.".php");
+            if (file_exists(ROOT.DS."Plugins".DS.$plugin.DS."App".DS."Controllers".DS.$className.".php"))
+                require_once(ROOT.DS."Plugins".DS.$plugin.DS."App".DS."Controllers".DS.$className.".php");
+        }
     }
 }
 spl_autoload_register("system_autoload");

@@ -32,6 +32,7 @@ class Template
     public $xml = "";
     public $message_view = false;
     public $_view = "";
+    public $_plugin = "";
 
 
     function __construct($controller, $action)
@@ -68,7 +69,9 @@ class Template
      */
     function render()
     {
+        $plugin_path = $this->_plugin != "" ? "Plugins" . DS . $this->_plugin . DS : "";
         $loader = new Twig_Loader_Filesystem(ROOT . DS . 'App' . DS . 'Views');
+        $loader->prependPath(ROOT . DS . $plugin_path . 'App' . DS . 'Views');
 
         $twig_config = array('autoescape' => false);
         if (ENV != 0 && ENV != 1) // Not in dev or tests
@@ -79,60 +82,49 @@ class Template
         $twig = new Twig_Environment($loader, $twig_config);
         extract($this->variables);
         $twig->addFunction('staticCall', new Twig_Function_Function('staticCall'));
-        if (isset($_SESSION["flash"]) && $_SESSION["flash"] != "")
-        {
+        if (isset($_SESSION["flash"]) && $_SESSION["flash"] != "") {
             $this->set("flash", $_SESSION["flash"]);
             $this->variables["_flash_"] = $_SESSION["flash"];
             $this->variables["HtmlHelper"] = new HtmlHelper();
         }
 
-        if (isset($_SESSION["flash_messages"]) && count($_SESSION["flash_messages"]) > 0)
-        {
+        if (isset($_SESSION["flash_messages"]) && count($_SESSION["flash_messages"]) > 0) {
             $this->set("flash_messages", $_SESSION["flash_messages"]);
             $this->variables["_flash_messages_"] = $_SESSION["flash_messages"];
         }
         $twig->addGlobal("HtmlHelper", new HtmlHelper());
         $twig->addFilter("tr", new Twig_Filter_Function("Intl::translate"));
-        if ($this->message_view)
-        {
+        if ($this->message_view) {
             $this->variables["_content_for_layout_"] = $twig->render("Layouts" . DS . "message" . ".php", $this->variables);
-        }
-        else if ($this->render)
-        {
+        } else if ($this->render) {
+
+
             if ($this->_view != "") //Checks if view was specified in controller. (v. 0.11)
             {
                 $this->variables["_content_for_layout_"] = $twig->render($this->_view, $this->variables);
-            }
-            else if (file_exists(ROOT . DS . "App" . DS . "Views" . DS . $this->_controller . DS . $this->_action . ".php"))
-            {
+            } else if (file_exists(ROOT . DS . $plugin_path . "App" . DS . "Views" . DS . $this->_controller . DS . $this->_action . ".php") ||
+                file_exists(ROOT . DS . "App" . DS . "Views" . DS . $this->_controller . DS . $this->_action . ".php")
+            ) {
                 $this->variables["_content_for_layout_"] = $twig->render($this->_controller . DS . $this->_action . ".php", $this->variables);
-            }
-            else if (file_exists(ROOT . DS . "App" . DS . "Views" . DS . $this->_controller . DS . $this->_action . ".html.twig"))
-            {
+            } else if (file_exists(ROOT . DS . $plugin_path . "App" . DS . "Views" . DS . $this->_controller . DS . $this->_action . ".html.twig") ||
+                file_exists(ROOT . DS . "App" . DS . "Views" . DS . $this->_controller . DS . $this->_action . ".html.twig")
+            ) {
                 $this->variables["_content_for_layout_"] = $twig->render($this->_controller . DS . $this->_action . ".html.twig", $this->variables);
-            }
-            else
-            {
+            } else {
                 MuffinApplication::addError("The view " . $this->_action . " was not found");
             }
-            if ($this->render_layout)
-            {
-                if (ENV == 0 && count(MuffinApplication::getErrors()) > 0)
-                {
+            if ($this->render_layout) {
+                if (ENV == 0 && count(MuffinApplication::getErrors()) > 0) {
                     $this->variables["muffin_errors"] = MuffinApplication::getErrors();
                 }
 
-                if (file_exists(ROOT . DS . "App" . DS . "Views" . DS . "Layouts" . DS . $this->_layout . ".html.twig"))
-                {
-
+                if (file_exists(ROOT . DS . "App" . DS . "Views" . DS . "Layouts" . DS . $this->_layout . ".html.twig") ||
+                    file_exists(ROOT . DS . $plugin_path . DS . "App" . DS . "Views" . DS . "Layouts" . DS . $this->_layout . ".html.twig")
+                ) {
                     echo $twig->render("Layouts" . DS . $this->_layout . ".html.twig", $this->variables);
-
                 }
-                else if (file_exists(ROOT . DS . "App" . DS . "Views" . DS . "Layouts" . DS . $this->_layout . ".php"))
-                    echo $twig->render("Layouts" . DS . $this->_layout . ".php", $this->variables);
-            }
-            else
-            {
+
+            } else {
                 echo $this->variables["_content_for_layout_"];
             }
         }
@@ -147,15 +139,13 @@ class Template
         $loader = new Twig_Loader_Filesystem(ROOT . DS . 'App' . DS . 'Views');
         $twig = new Twig_Environment($loader, array("autoescape" => false));
         $twig->addFunction('staticCall', new Twig_Function_Function('staticCall'));
-        if (isset($_SESSION["flash"]) && $_SESSION["flash"] != "")
-        {
+        if (isset($_SESSION["flash"]) && $_SESSION["flash"] != "") {
             $this->set("flash", $_SESSION["flash"]);
             $this->variables["_flash_"] = $_SESSION["flash"];
         }
         $twig->addGlobal("HtmlHelper", new HtmlHelper());
         extract($this->variables);
-        if ($this->render)
-        {
+        if ($this->render) {
             header("content-type: text/xml");
             echo '<?xml version="1.0"?>' . "\n";
             echo "<root>\n";

@@ -22,6 +22,8 @@
  */
 
 include("Parser.php");
+include ("../../Config/config.php");
+
 
 
 class Shell

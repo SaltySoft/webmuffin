@@ -47,5 +47,7 @@ removeMagicQuotes();
 unregisterGlobals();
 callHook();
 */
+
+
 require_once("MuffinApplication.php");
-MuffinApplication::start();
+MuffinApplication::start($_PLUGINS);

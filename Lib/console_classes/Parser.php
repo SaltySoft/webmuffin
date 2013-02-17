@@ -24,7 +24,8 @@
 include ("Lexer.php");
 include ("ModelGenerator.php");
 include ("ControllerGenerator.php");
-include ("../../Config/config.php");
+
+
 class Parser
 {
     private $lexer;
@@ -60,7 +61,7 @@ class Parser
                 )
                 {
                     $execution_result = array();
-                    exec("php doctrine.php " . $string, $execution_result);
+                    exec("php ".ROOT.DS."Lib".DS."console_classes".DS."doctrine.php " . $string, $execution_result);
                     foreach ($execution_result as $line)
                     {
                         echo $line . "\n";
