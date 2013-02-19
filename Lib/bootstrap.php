@@ -50,4 +50,4 @@ callHook();
 
 
 require_once("MuffinApplication.php");
-MuffinApplication::start($_PLUGINS);
+MuffinApplication::start();

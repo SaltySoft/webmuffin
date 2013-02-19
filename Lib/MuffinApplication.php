@@ -149,7 +149,7 @@ class MuffinApplication
         }
     }
 
-    public static function start($plugins_array = array())
+    public static function start()
     {
 
         if (!self::$started) {
