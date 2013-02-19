@@ -2,7 +2,9 @@
     RewriteEngine   On
 
 
-    RewriteRule     ^$      Public/     [L]
-    RewriteRule     ^(.*)$    Public/$1   [L]
+    RewriteCond     %{REQUEST_FILENAME} !-f
+    RewriteCond     %{REQUEST_FILENAME} !-d
+
+    RewriteRule     ^(.*)$ index.php?url=$1 [QSA,PT,L]
 
 </IfModule>

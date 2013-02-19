@@ -94,15 +94,25 @@ class Router
             "controller" => "",
             "action" => "",
         ),
-        array(
-            "url" => array(
-                "namespace" => "[a-zA-Z]+",
-                "controller" => "[a-zA-Z]+",
-                "action" => "[a-zA-Z]+"
-            ),
-            "controller" => "",
-            "action" => "",
-        ),
+//        array(
+//            "url" => array(
+//                "namespace" => "[a-zA-Z]+",
+//                "controller" => "[a-zA-Z]+",
+//                "action" => "[a-zA-Z]+"
+//            ),
+//            "controller" => "",
+//            "action" => "",
+//        ),
+//        array(
+//            "url" => array(
+//                "namespace" => "[a-zA-Z]+",
+//                "controller" => "[a-zA-Z]+"
+//            ),
+//            "namespace" => "",
+//            "controller" => "",
+//            "action" => "index",
+//        ),
+
         array(
             "url" => array(
                 "controller" => "[a-zA-Z]+",
@@ -274,6 +284,24 @@ class Router
         $size = count($url_array);
         $i = 0;
 
+        $plugins = MuffinApplication::getPlugins();
+        if (isset($url_array[0]))
+        {
+            foreach ($plugins as $plugin)
+            {
+                if ($plugin == $url_array[0])
+                {
+                    $namespace = $plugin;
+                    array_shift($url_array);
+                    if (count($url_array) <= 1)
+                    {
+                        $url_array[] = "";
+                    }
+                }
+            }
+        }
+
+
         foreach (self::$routes as $route)
         {
             if ($found_path == false)
@@ -284,22 +312,26 @@ class Router
 
                     foreach ($route["url"] as $key => $param) //foreach param in the route, check if corresponds
                     {
+
+
                         if (preg_match("/^" . $param . "$/", $url_array[$i]) || ($i == count($url_array) - 1 && preg_match("/" . $param . "/", $url_array[$i])))
                         {
-
                             $result[$key] = $url_array[$i];
                             $i++;
                             if ($i == count($route["url"])) //all params matched -> return the result array
                             {
 
                                 $found_path = true;
+
+
                                 if (!isset($result["controller"]))
                                     $result["controller"] = $route["controller"];
+
                                 if (!isset($result["action"]) || $result["action"] == "")
                                 {
                                     $result["action"] = $route["action"];
                                 }
-                                print_r($result);
+
                                 break;
                             }
                         }
@@ -315,6 +347,10 @@ class Router
             {
                 break;
             }
+        }
+        if (isset($namespace))
+        {
+            $result["namespace"] = $namespace;
         }
         if (!isset($result["action"]))
         {
@@ -332,7 +368,6 @@ class Router
         }
         $result["action"] = $actionTypeArray[0];
         $result["size"] = $size;
-
         return $result;
     }
 
@@ -398,14 +433,12 @@ class Router
 
             $plugins = MuffinApplication::getPlugins();
             $controllerArray = explode(DS, $controller);
-            echo $controllerArray[count($controllerArray) - 1];
             foreach ($plugins as $plugin)
             {
 
-                if (file_exists(ROOT . DS . "Plugins" . DS . $plugin . DS ."App".  DS . "Controllers" . DS . $controllerArray[count($controllerArray) - 1] . ".php"))
+                if (file_exists(ROOT . DS . "Plugins" . DS . $plugin . DS . "App" . DS . "Controllers" . DS . $controllerArray[count($controllerArray) - 1] . ".php"))
                 {
-                    $controller_nam = $parameters["namespace"]."\\".$controller;
-                    echo $controller_nam;
+                    $controller_nam = $parameters["namespace"] . "\\" . $controller;
                     if ((int)method_exists($controller_nam, $action))
                     {
                         $dispatch = new $controller_nam($model, $controllerName, $action, $parameters["responseType"]);
