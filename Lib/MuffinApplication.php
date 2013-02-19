@@ -162,6 +162,13 @@ class MuffinApplication
             self::$started = true;
             require_once (ROOT . DS . "Lib" . DS . "shared.php");
             require_once (ROOT . DS . "Config" . DS . "routes.php");
+
+            foreach (self::$plugins as $plugin)
+            {
+                if (file_exists(ROOT . DS . "Plugins". DS . $plugin . DS . "Config" . DS . "routes.php"))
+                    require_once (ROOT . DS . "Plugins". DS . $plugin . DS . "Config" . DS . "routes.php");
+            }
+
             require_once (ROOT . DS . "Lib" . DS . "doctrine_bootstrap.php");
             session_start();
             if (!isset($_COOKIE["locale"]) && !isset($_SESSION["locale"])) {
