@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2012 Antoine Jackson
+ * Copyright (C) 2013 Antoine Jackson
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,12 +21,13 @@
  * OR OTHER DEALINGS IN THE SOFTWARE.
  */
 use Doctrine\Common\ClassLoader,
-Doctrine\ORM\Configuration,
-Doctrine\ORM\EntityManager,
-Doctrine\Common\Cache\ApcCache;
+    Doctrine\ORM\Configuration,
+    Doctrine\ORM\EntityManager,
+    Doctrine\Common\Cache\ApcCache;
 
-try
-{
+try {
+
+    $plugins_array = MuffinApplication::getPlugins();
     require_once ROOT . DS . "Lib" . DS . "Vendors" . DS . "vendor" . DS . "doctrine-common" . DS . "lib" . DS . "Doctrine" . DS . "Common" . DS . "ClassLoader.php";
     $location = ROOT . DS . "Lib/Vendors/";
     $classLoader = new \Doctrine\Common\ClassLoader('Doctrine\ORM', $location);
@@ -39,27 +40,38 @@ try
     $classLoader->register();
     $classLoader = new \Doctrine\Common\ClassLoader(null, ROOT . DS . 'App' . DS . "Models");
     $classLoader->register();
+
+    foreach ($plugins_array as $plugin) {
+        $classLoader = new \Doctrine\Common\ClassLoader($plugin, ROOT.DS."Plugins".DS.$plugin.DS."App".DS."Models");
+        $classLoader->register();
+    }
+
+
     $classLoader = new \Doctrine\Common\ClassLoader('Proxies', __DIR__);
     $classLoader->register();
     require_once(ROOT . DS . "Config" . DS . "database.php");
 // Set up caches
     $config = new Configuration;
 
+    $entity_driver_folders = array(ROOT . DS . "App".DS."Models");
 
-    $driverImpl = $config->newDefaultAnnotationDriver(array(ROOT . DS . "/App/Models"));
+
+
+    foreach ($plugins_array as $plugin) {
+        $entity_driver_folders[] = ROOT.DS."Plugins".DS.$plugin.DS."App".DS."Models";
+    }
+    $driverImpl = $config->newDefaultAnnotationDriver($entity_driver_folders);
     $config->setMetadataDriverImpl($driverImpl);
 
 // Proxy configuration
     $config->setProxyDir(ROOT . DS . "Tmp" . DS . 'Proxies');
     $config->setProxyNamespace('Proxies');
 
-    if (!defined("CACHE_PREFIX"))
-    {
+    if (!defined("CACHE_PREFIX")) {
         define("CACHE_PREFIX", "your_app_name");
     }
 
-    if (extension_loaded("apc"))
-    {
+    if (extension_loaded("apc")) {
         $cache = new ApcCache();
         $cache->setNamespace(CACHE_PREFIX);
         $config->setQueryCacheImpl($cache);
@@ -69,16 +81,11 @@ try
 
 // Database connection information
     $dbc = new \DbConfig();
-    if (ENV == 0)
-    {
+    if (ENV == 0) {
         $dbinfos = $dbc->dev;
-    }
-    else if (ENV == 1)
-    {
+    } else if (ENV == 1) {
         $dbinfos = $dbc->test;
-    }
-    else
-    {
+    } else {
         $dbinfos = $dbc->prod;
     }
     $connectionOptions = array(
@@ -92,7 +99,6 @@ try
 // Create EntityManager
     $em = EntityManager::create($connectionOptions, $config);
     $GLOBALS["em"] = EntityManager::create($connectionOptions, $config);
-} catch (Exception $e)
-{
+} catch (Exception $e) {
     echo $e->getMessage();
 }

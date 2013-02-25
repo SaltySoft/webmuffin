@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2012 Antoine Jackson
+ * Copyright (C) 2013 Antoine Jackson
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,6 +23,8 @@
 
 class HtmlHelper extends Helper
 {
+
+    public static $current_plugin = "";
 
     static function  importCss($name)
     {
@@ -55,5 +57,10 @@ class HtmlHelper extends Helper
         {
             include(ROOT.DS."App".DS."Views".DS."Snippets".DS.$file.".php");
         }
+    }
+
+    public static function resource_path($string)
+    {
+        return "/" . self::$current_plugin . "/" . $string;
     }
 }
