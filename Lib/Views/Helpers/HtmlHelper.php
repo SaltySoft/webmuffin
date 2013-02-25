@@ -24,6 +24,8 @@
 class HtmlHelper extends Helper
 {
 
+    public static $current_plugin = "";
+
     static function  importCss($name)
     {
         return '<link rel="stylesheet" href="'.SERVER_ROOT.'/css/'.$name.'.css" type="text/css">'."\n";
@@ -55,5 +57,10 @@ class HtmlHelper extends Helper
         {
             include(ROOT.DS."App".DS."Views".DS."Snippets".DS.$file.".php");
         }
+    }
+
+    public static function resource_path($string)
+    {
+        return "/" . self::$current_plugin . "/" . $string;
     }
 }

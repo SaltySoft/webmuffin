@@ -40,6 +40,7 @@ class Template
         $this->_controller = $controller;
         $this->_action = $action;
         Intl::init();
+
     }
 
     /**
@@ -69,6 +70,7 @@ class Template
      */
     function render()
     {
+        HtmlHelper::$current_plugin = $this->_plugin;
         $plugin_path = $this->_plugin != "" ? "Plugins" . DS . $this->_plugin . DS : "";
         $loader = new Twig_Loader_Filesystem(ROOT . DS . 'App' . DS . 'Views');
         $loader->prependPath(ROOT . DS . $plugin_path . 'App' . DS . 'Views');
@@ -94,6 +96,8 @@ class Template
         }
         $twig->addGlobal("HtmlHelper", new HtmlHelper());
         $twig->addFilter("tr", new Twig_Filter_Function("Intl::translate"));
+        $twig->addFilter("resource", new Twig_Filter_Function("HtmlHelper::resource_path"));
+
         if ($this->message_view) {
             $this->variables["_content_for_layout_"] = $twig->render("Layouts" . DS . "message" . ".php", $this->variables);
         } else if ($this->render) {
