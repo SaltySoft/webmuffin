@@ -216,6 +216,8 @@ class Router
             $route["controller"] = $array["controller"];
         if (isset($array["action"]))
             $route["action"] = $array["action"];
+        if (isset($array["method"]))
+            $route["method"] = $array["method"];
         self::connect_array($route);
     }
 
@@ -335,9 +337,8 @@ class Router
         print_r($url_array);
         foreach (self::$routes as $route)
         {
-            if ($found_path == false || (isset($route["method"]) && $_SERVER["REQUEST_METHOD"] == $route["method"]))
+            if (($found_path == false || (isset($route["method"]) && $_SERVER["REQUEST_METHOD"] == $route["method"])) && !(isset($route["method"]) && $_SERVER["REQUEST_METHOD"] != $route["method"]))
             {
-
                 $i = 0;
 
                 if (count($route["url"]) == count($url_array)) //check if same parameters count
