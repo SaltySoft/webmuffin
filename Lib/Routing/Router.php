@@ -283,6 +283,7 @@ class Router
      */
     static function parse($url)
     {
+        $url = rtrim($url, "/");
         $url_array = explode("/", $url);
         //Removed for rest method update
         if (count($url_array) <= 1)
@@ -314,7 +315,6 @@ class Router
         }
 
         $result = array();
-        print_r($url_array);
         foreach (self::$routes as $route)
         {
             if (($found_path == false || (isset($route["method"]) && $_SERVER["REQUEST_METHOD"] == $route["method"])) && !(isset($route["method"]) && $_SERVER["REQUEST_METHOD"] != $route["method"]))
@@ -332,7 +332,7 @@ class Router
                         {
                             $result[$key] = $url_array[$i];
 
-                            echo $i;
+
                             $i++;
                             if ($i == count($route["url"]) && $i == count($url_array)) //all params matched -> return the result array
                             {
