@@ -113,29 +113,9 @@ class Router
             "controller" => "",
             "action" => "",
         ),
-//        array(
-//            "url" => array(
-//                "namespace" => "[a-zA-Z]+",
-//                "controller" => "[a-zA-Z]+",
-//                "action" => "[a-zA-Z]+"
-//            ),
-//            "controller" => "",
-//            "action" => "",
-//        ),
-//        array(
-//            "url" => array(
-//                "namespace" => "[a-zA-Z]+",
-//                "controller" => "[a-zA-Z]+"
-//            ),
-//            "namespace" => "",
-//            "controller" => "",
-//            "action" => "index",
-//        ),
-
         array(
             "url" => array(
                 "controller" => "[a-zA-Z]+",
-               // "action" => ""
             ),
             "controller" => "",
             "action" => "index",
@@ -143,7 +123,6 @@ class Router
         array(
             "url" => array(
                 "controller" => "[a-zA-Z]+",
-                //"action" => ""
             ),
             "method" => "POST",
             "controller" => "",
@@ -305,9 +284,10 @@ class Router
     static function parse($url)
     {
         $url_array = explode("/", $url);
+        //Removed for rest method update
         if (count($url_array) <= 1)
         {
-         //   $url_array[] = "";
+            //   $url_array[] = "";
         }
         $found_path = false;
         $result = array();
@@ -326,14 +306,14 @@ class Router
                     array_shift($url_array);
                     if (count($url_array) <= 1)
                     {
-                      //  $url_array[] = "";
+                        //Removed for rest method update
+                        //  $url_array[] = "";
                     }
                 }
             }
         }
 
         $result = array();
-        $hard_defined_action = false;
         print_r($url_array);
         foreach (self::$routes as $route)
         {
@@ -356,15 +336,12 @@ class Router
                             $i++;
                             if ($i == count($route["url"]) && $i == count($url_array)) //all params matched -> return the result array
                             {
-                                echo "Matched route : " . $route["action"] . "\n";
-                                echo "Route method : " . $route["method"] . "\n";
-                                echo "Current method : " . $_SERVER["REQUEST_METHOD"] . "\n";
-                                print_r($route);
+
                                 $found_path = true;
                                 if (!isset($result["controller"]))
                                     $result["controller"] = $route["controller"];
 
-                                //if (!isset($result["action"]) || $result["action"] == "")
+
                                 if (isset($route["action"]) && $route["action"] != "")
                                 {
                                     $result["action"] = $route["action"];
@@ -403,7 +380,6 @@ class Router
         {
             $result["responseType"] = $actionTypeArray[1];
         }
-         print_r($result);
         $result["action"] = $actionTypeArray[0];
         $result["size"] = $size;
         return $result;
