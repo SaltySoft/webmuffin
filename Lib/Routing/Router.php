@@ -37,6 +37,25 @@ class Router
         array(
             "url" => array(
                 "controller" => "[a-zA-Z]+",
+                "id" => "[0-9]+"
+            ),
+            "controller" => "",
+            "method" => "DELETE",
+            "action" => "destroy",
+        ),
+        array(
+            "url" => array(
+                "controller" => "[a-zA-Z]+",
+                "id" => "[0-9]+"
+            ),
+            "controller" => "",
+            "method" => "PUT",
+            "action" => "update",
+        ),
+
+        array(
+            "url" => array(
+                "controller" => "[a-zA-Z]+",
                 "action" => "show",
                 "id" => "[0-9]+"
             ),
@@ -94,33 +113,22 @@ class Router
             "controller" => "",
             "action" => "",
         ),
-//        array(
-//            "url" => array(
-//                "namespace" => "[a-zA-Z]+",
-//                "controller" => "[a-zA-Z]+",
-//                "action" => "[a-zA-Z]+"
-//            ),
-//            "controller" => "",
-//            "action" => "",
-//        ),
-//        array(
-//            "url" => array(
-//                "namespace" => "[a-zA-Z]+",
-//                "controller" => "[a-zA-Z]+"
-//            ),
-//            "namespace" => "",
-//            "controller" => "",
-//            "action" => "index",
-//        ),
-
         array(
             "url" => array(
                 "controller" => "[a-zA-Z]+",
-                "action" => ""
             ),
             "controller" => "",
             "action" => "index",
         ),
+        array(
+            "url" => array(
+                "controller" => "[a-zA-Z]+",
+            ),
+            "method" => "POST",
+            "controller" => "",
+            "action" => "create",
+        ),
+
 
     );
 
@@ -187,6 +195,8 @@ class Router
             $route["controller"] = $array["controller"];
         if (isset($array["action"]))
             $route["action"] = $array["action"];
+        if (isset($array["method"]))
+            $route["method"] = $array["method"];
         self::connect_array($route);
     }
 
@@ -273,10 +283,12 @@ class Router
      */
     static function parse($url)
     {
+        $url = rtrim($url, "/");
         $url_array = explode("/", $url);
+        //Removed for rest method update
         if (count($url_array) <= 1)
         {
-            $url_array[] = "";
+            //   $url_array[] = "";
         }
         $found_path = false;
         $result = array();
@@ -295,18 +307,20 @@ class Router
                     array_shift($url_array);
                     if (count($url_array) <= 1)
                     {
-                        $url_array[] = "";
+                        //Removed for rest method update
+                        //  $url_array[] = "";
                     }
                 }
             }
         }
 
-
+        $result = array();
         foreach (self::$routes as $route)
         {
-            if ($found_path == false)
+            if (($found_path == false || (isset($route["method"]) && $_SERVER["REQUEST_METHOD"] == $route["method"])) && !(isset($route["method"]) && $_SERVER["REQUEST_METHOD"] != $route["method"]))
             {
-                $result = array();
+                $i = 0;
+
                 if (count($route["url"]) == count($url_array)) //check if same parameters count
                 {
 
@@ -317,23 +331,26 @@ class Router
                         if (preg_match("/^" . $param . "$/", $url_array[$i]) || ($i == count($url_array) - 1 && preg_match("/" . $param . "/", $url_array[$i])))
                         {
                             $result[$key] = $url_array[$i];
+
+
                             $i++;
-                            if ($i == count($route["url"])) //all params matched -> return the result array
+                            if ($i == count($route["url"]) && $i == count($url_array)) //all params matched -> return the result array
                             {
 
                                 $found_path = true;
-
-
                                 if (!isset($result["controller"]))
                                     $result["controller"] = $route["controller"];
 
-                                if (!isset($result["action"]) || $result["action"] == "")
+
+                                if (isset($route["action"]) && $route["action"] != "")
                                 {
                                     $result["action"] = $route["action"];
                                 }
 
                                 break;
                             }
+
+
                         }
                         else
                         {
@@ -343,11 +360,8 @@ class Router
                     }
                 }
             }
-            else
-            {
-                break;
-            }
         }
+
         if (isset($namespace))
         {
             $result["namespace"] = $namespace;
@@ -420,6 +434,7 @@ class Router
             if ((int)method_exists($controller, $action))
             {
                 $dispatch = new $controller($model, $controllerName, $action, $parameters["responseType"]);
+                $dispatch->setParams($parameters);
                 $dispatch->executeAction($action, $parameters);
                 $rendered = true;
             }
