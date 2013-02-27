@@ -193,7 +193,7 @@ class Controller
         return $_SERVER["REQUEST_METHOD"];
     }
 
-    protected function setParams($params)
+    public function setParams($params)
     {
         $this->params = $params;
     }
