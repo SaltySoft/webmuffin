@@ -434,6 +434,7 @@ class Router
             if ((int)method_exists($controller, $action))
             {
                 $dispatch = new $controller($model, $controllerName, $action, $parameters["responseType"]);
+                $dispatch->setParams($parameters);
                 $dispatch->executeAction($action, $parameters);
                 $rendered = true;
             }
