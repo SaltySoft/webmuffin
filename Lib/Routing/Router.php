@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2012 Antoine Jackson
+ * Copyright (C) 2013 Antoine Jackson
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -34,6 +34,25 @@ class Router
             "controller" => "",
             "action" => "show",
         ),
+        array(
+            "url" => array(
+                "controller" => "[a-zA-Z]+",
+                "id" => "[0-9]+"
+            ),
+            "controller" => "",
+            "method" => "DELETE",
+            "action" => "destroy",
+        ),
+        array(
+            "url" => array(
+                "controller" => "[a-zA-Z]+",
+                "id" => "[0-9]+"
+            ),
+            "controller" => "",
+            "method" => "PUT",
+            "action" => "update",
+        ),
+
         array(
             "url" => array(
                 "controller" => "[a-zA-Z]+",
@@ -97,11 +116,20 @@ class Router
         array(
             "url" => array(
                 "controller" => "[a-zA-Z]+",
-                "action" => ""
             ),
             "controller" => "",
             "action" => "index",
         ),
+        array(
+            "url" => array(
+                "controller" => "[a-zA-Z]+",
+            ),
+            "method" => "POST",
+            "controller" => "",
+            "action" => "create",
+        ),
+
+
     );
 
     static $home_root = array(
@@ -167,6 +195,8 @@ class Router
             $route["controller"] = $array["controller"];
         if (isset($array["action"]))
             $route["action"] = $array["action"];
+        if (isset($array["method"]))
+            $route["method"] = $array["method"];
         self::connect_array($route);
     }
 
@@ -253,40 +283,74 @@ class Router
      */
     static function parse($url)
     {
+        $url = rtrim($url, "/");
         $url_array = explode("/", $url);
+        //Removed for rest method update
         if (count($url_array) <= 1)
         {
-            $url_array[] = "";
+            //   $url_array[] = "";
         }
         $found_path = false;
         $result = array();
 
         $size = count($url_array);
         $i = 0;
+
+        $plugins = MuffinApplication::getPlugins();
+        if (isset($url_array[0]))
+        {
+            foreach ($plugins as $plugin)
+            {
+                if ($plugin == $url_array[0])
+                {
+                    $namespace = $plugin;
+                    array_shift($url_array);
+                    if (count($url_array) <= 1)
+                    {
+                        //Removed for rest method update
+                        //  $url_array[] = "";
+                    }
+                }
+            }
+        }
+
+        $result = array();
         foreach (self::$routes as $route)
         {
-            if ($found_path == false)
+            if (($found_path == false || (isset($route["method"]) && $_SERVER["REQUEST_METHOD"] == $route["method"])) && !(isset($route["method"]) && $_SERVER["REQUEST_METHOD"] != $route["method"]))
             {
-                $result = array();
+                $i = 0;
+
                 if (count($route["url"]) == count($url_array)) //check if same parameters count
                 {
+
                     foreach ($route["url"] as $key => $param) //foreach param in the route, check if corresponds
                     {
+
+
                         if (preg_match("/^" . $param . "$/", $url_array[$i]) || ($i == count($url_array) - 1 && preg_match("/" . $param . "/", $url_array[$i])))
                         {
                             $result[$key] = $url_array[$i];
+
+
                             $i++;
-                            if ($i == count($route["url"])) //all params matched -> return the result array
+                            if ($i == count($route["url"]) && $i == count($url_array)) //all params matched -> return the result array
                             {
+
                                 $found_path = true;
                                 if (!isset($result["controller"]))
                                     $result["controller"] = $route["controller"];
-                                if (!isset($result["action"]) || $result["action"] == "")
+
+
+                                if (isset($route["action"]) && $route["action"] != "")
                                 {
                                     $result["action"] = $route["action"];
                                 }
+
                                 break;
                             }
+
+
                         }
                         else
                         {
@@ -296,10 +360,11 @@ class Router
                     }
                 }
             }
-            else
-            {
-                break;
-            }
+        }
+
+        if (isset($namespace))
+        {
+            $result["namespace"] = $namespace;
         }
         if (!isset($result["action"]))
         {
@@ -362,12 +427,14 @@ class Router
             $model = "";
         }
         $rendered = false;
+
         if (file_exists(ROOT . DS . "App" . DS . "Controllers" . DS . $controller . ".php"))
         {
 
             if ((int)method_exists($controller, $action))
             {
                 $dispatch = new $controller($model, $controllerName, $action, $parameters["responseType"]);
+                $dispatch->setParams($parameters);
                 $dispatch->executeAction($action, $parameters);
                 $rendered = true;
             }
@@ -375,6 +442,33 @@ class Router
             {
                 //self::redirect(array());
             }
+        }
+        else
+        {
+
+            $plugins = MuffinApplication::getPlugins();
+            $controllerArray = explode(DS, $controller);
+            foreach ($plugins as $plugin)
+            {
+
+                if (file_exists(ROOT . DS . "Plugins" . DS . $plugin . DS . "App" . DS . "Controllers" . DS . $controllerArray[count($controllerArray) - 1] . ".php"))
+                {
+                    $controller_nam = $parameters["namespace"] . "\\" . $controller;
+                    if ((int)method_exists($controller_nam, $action))
+                    {
+                        $dispatch = new $controller_nam($model, $controllerName, $action, $parameters["responseType"]);
+                        $dispatch->setPlugin($plugin);
+                        $dispatch->executeAction($action, $parameters);
+                        $rendered = true;
+                    }
+                    else
+                    {
+                        //self::redirect(array());
+                    }
+                }
+            }
+
+
         }
         if (!$rendered)
         {

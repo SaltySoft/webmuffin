@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (C) 2012 Antoine Jackson
+ * Copyright (C) 2013 Antoine Jackson
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -38,12 +38,14 @@ class Controller
     protected $status = 200;
     protected $layout = "default";
     protected $view = "";
-
-
+    protected $_plugin_name = "";
+    protected $params = array();
+    protected $input = "";
 
 
     function __construct($model, $controller, $action, $responseType)
     {
+        $this->input = file_get_contents('php://input');
         $this->_controller = $controller;
         $this->_action = $action;
         $this->_model = $model;
@@ -66,6 +68,11 @@ class Controller
     function get_var_array()
     {
         return $this->_template->get_var_array();
+    }
+
+    function setPlugin($name)
+    {
+        $this->_plugin_name = $name;
     }
 
     function redirect($redirection)
@@ -115,7 +122,10 @@ class Controller
 
     public function setLayout($layout)
     {
-        if (file_exists(ROOT . DS . "App" . DS . "Views" . DS . "Layouts" . DS . $layout . ".html.twig"))
+        $plugin_path = $this->_plugin_name != "" ? "Plugins" . DS . $this->_plugin . DS : "";
+        if (file_exists(ROOT . DS . "App" . DS . "Views" . DS . "Layouts" . DS . $layout . ".html.twig") ||
+            file_exists(ROOT . DS . $plugin_path . DS . "App" . DS . "Views" . DS . "Layouts" . DS . $layout . ".html.twig")
+        )
         {
             $this->layout = $layout;
         }
@@ -137,12 +147,14 @@ class Controller
 
     function __destruct()
     {
+
         $this->set("errors", $this->errors);
         $this->_template->render_layout = $this->render_layout;
         $this->_template->xml = $this->xml;
         $this->_template->message_view = $this->message_view;
         $this->_template->_layout = $this->layout;
         $this->_template->_view = $this->view;
+        $this->_template->_plugin = $this->_plugin_name;
         if (MuffinApplication::getHttpResponseCode() != 200)
         {
 
@@ -161,7 +173,7 @@ class Controller
         //WebSockets
 
         $this->set("_session_id", MuffinApplication::getSessionId());
-        $this->set("_socket_serv", "ws://" . $_SERVER["SERVER_NAME"] . ":". (defined("NODE_PORT") ? NODE_PORT : "8899"));
+        $this->set("_socket_serv", "ws://" . $_SERVER["SERVER_NAME"] . ":" . (defined("NODE_PORT") ? NODE_PORT : "8899"));
 
         if ($this->rendered)
         {
@@ -176,6 +188,73 @@ class Controller
         }
     }
 
+    protected function requestMethod()
+    {
+        return $_SERVER["REQUEST_METHOD"];
+    }
+
+    protected function setParams($params)
+    {
+        $this->params = $params;
+    }
+
+
+    function parse_raw_http_request(array &$a_data, $input)
+    {
+
+        // grab multipart boundary from content type header
+        preg_match('/boundary=(.*)$/', $_SERVER['CONTENT_TYPE'], $matches);
+        $boundary = $matches[1];
+
+        // split content by boundary and get rid of last -- element
+        $a_blocks = preg_split("/-+$boundary/", $input);
+        array_pop($a_blocks);
+
+        // loop data blocks
+        foreach ($a_blocks as $id => $block)
+        {
+            if (empty($block))
+                continue;
+
+            // you'll have to var_dump $block to understand this and maybe replace \n or \r with a visibile char
+
+            // parse uploaded files
+            if (strpos($block, 'application/octet-stream') !== FALSE)
+            {
+                // match "name", then everything after "stream" (optional) except for prepending newlines
+                preg_match("/name=\"([^\"]*)\".*stream[\n|\r]+([^\n\r].*)?$/s", $block, $matches);
+            }
+            // parse all other fields
+            else
+            {
+                // match "name" and optional value in between newline sequences
+                preg_match('/name=\"([^\"]*)\"[\n|\r]+([^\n\r].*)?\r$/s', $block, $matches);
+            }
+            $a_data[$matches[1]] = $matches[2];
+        }
+    }
+
+    /**
+     * this method returns an array containing all input HTTP data, like POST or PUT.
+     * Useful for REST web-services
+     * @return The array containing all data
+     */
+    protected function getRequestData()
+    {
+        $input = $this->input;
+        $decoded_data = array();
+        $this->parse_raw_http_request($decoded_data, $input);
+        $vars = is_array($decoded_data) && count($decoded_data) > 0 ? $decoded_data : json_decode($input, true);
+        $return_array = is_array($vars) ? array_merge($vars, $_POST) : $_POST;
+        if (is_array($this->params))
+        {
+            echo "hA";
+            $return_array = array_merge($return_array, $this->params);
+        }
+
+
+        return $return_array;
+    }
 
 
 }
