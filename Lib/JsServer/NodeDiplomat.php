@@ -7,7 +7,7 @@
  */
 class NodeDiplomat
 {
-    public static $port = "8899";
+    public static $port = NODE_PORT;
 
     public static function sendMessage($session_id, $array)
     {
