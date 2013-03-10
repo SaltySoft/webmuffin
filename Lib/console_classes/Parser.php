@@ -229,7 +229,7 @@ class Parser
             $conn = @fsockopen("127.0.0.1", $numport);
             if (!$conn)
             {
-                self::$node_pid = exec('cd ' . ROOT . DS . Lib . DS . 'JsServer; > ' . ROOT . DS . "App" . DS . "Logs" . DS . 'nodelog nohup  node index.js ' . $port . '& echo $!', $execution_result);
+                self::$node_pid = exec('cd ' . ROOT . DS . "Lib" . DS . 'JsServer; > ' . ROOT . DS . "App" . DS . "Logs" . DS . 'nodelog nohup  node index.js ' . $port . '& echo $!', $execution_result);
 
                 $myFile = "nodeserver.pid";
                 $fh = fopen($myFile, 'w');
