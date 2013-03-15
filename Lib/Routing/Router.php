@@ -29,7 +29,7 @@ class Router
         array(
             "url" => array(
                 "controller" => "[a-zA-Z]+",
-                "id" => "[0-9]+"
+                "id" => "[0-9a-zA-Z]+"
             ),
             "controller" => "",
             "action" => "show",
@@ -37,7 +37,7 @@ class Router
         array(
             "url" => array(
                 "controller" => "[a-zA-Z]+",
-                "id" => "[0-9]+"
+                "id" => "[0-9a-zA-Z]+"
             ),
             "controller" => "",
             "method" => "DELETE",
@@ -46,7 +46,7 @@ class Router
         array(
             "url" => array(
                 "controller" => "[a-zA-Z]+",
-                "id" => "[0-9]+"
+                "id" => "[0-9a-zA-Z]+"
             ),
             "controller" => "",
             "method" => "PUT",
@@ -57,7 +57,7 @@ class Router
             "url" => array(
                 "controller" => "[a-zA-Z]+",
                 "action" => "show",
-                "id" => "[0-9]+"
+                "id" => "[0-9a-zA-Z]+"
             ),
             "controller" => "",
             "action" => "show",
@@ -66,7 +66,7 @@ class Router
             "url" => array(
                 "controller" => "[a-zA-Z]+",
                 "action" => "edit",
-                "id" => "[0-9]+"
+                "id" => "[0-9a-zA-Z]+"
             ),
             "controller" => "",
             "action" => "edit",
@@ -91,7 +91,7 @@ class Router
             "url" => array(
                 "controller" => "[a-zA-Z]+",
                 "action" => "update",
-                "id" => "[0-9]+"
+                "id" => "[0-9a-zA-Z]+"
             ),
             "controller" => "",
             "action" => "update",
@@ -100,7 +100,7 @@ class Router
             "url" => array(
                 "controller" => "[a-zA-Z]+",
                 "action" => "destroy",
-                "id" => "[0-9]+"
+                "id" => "[0-9a-zA-Z]+"
             ),
             "controller" => "",
             "action" => "destroy",

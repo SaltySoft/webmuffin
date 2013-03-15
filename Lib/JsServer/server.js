@@ -47,6 +47,7 @@ function start(route, handle) {
                 }
                 //console.log("New session : " + session_id);
                 connections[session_id].push(connection);
+                connection.session_id = session_id;
             }
 
             for (k in connections) {
